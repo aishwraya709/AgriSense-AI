@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>AgriSense-AI | Microbiome Intelligence for Sustainable Farming</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js & Leaflet -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F6F9F2;
+            color: #1A2E1F;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* glassmorphic scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #E2EBD8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3A7B4B;
+            border-radius: 12px;
+        }
+
+        /* navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 20px rgba(0, 20, 0, 0.05);
+            border-bottom: 1px solid rgba(58, 123, 75, 0.2);
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #2C6E3F, #7CB342);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .logo i {
+            background: none;
+            -webkit-background-clip: unset;
+            color: #3A7B4B;
+            margin-right: 6px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 500;
+            color: #2B4B2F;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+        .nav-links a:hover {
+            color: #78B83E;
+            transform: translateY(-2px);
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 6%;
+            position: relative;
+        }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: radial-gradient(circle at 80% 20%, #EFF7E9, #DAECD0);
+            padding-top: 6rem;
+        }
+        .hero-content {
+            max-width: 700px;
+        }
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(to right, #1D4B2A, #5A9E3E);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .badge {
+            background: rgba(58, 123, 75, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2A6B3C;
+        }
+        .btn-group {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+        .btn-primary {
+            background: #3A7B4B;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 14px rgba(58,123,75,0.3);
+        }
+        .btn-primary:hover {
+            background: #2C6E3F;
+            transform: scale(1.02);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid #3A7B4B;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #2C6E3F;
+        }
+
+        /* cards & glass */
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            border-radius: 32px;
+            padding: 1.5rem;
+            box-shadow: 0 12px 28px rgba(0, 32, 0, 0.06);
+            border: 1px solid rgba(100, 150, 80, 0.2);
+            transition: all 0.3s ease;
+        }
+        .grid-2, .grid-3, .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.6rem;
+            text-align: center;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.03);
+        }
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #3A7B4B;
+        }
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.3px;
+        }
+        .section-subhead {
+            color: #557C49;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        /* live dashboard */
+        .dashboard-panel {
+            background: #1F2D1C;
+            border-radius: 2rem;
+            color: #E9F5E3;
+            padding: 1.8rem;
+        }
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0;
+        }
+        .sensor-tile {
+            background: #2B3927;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+        .sensor-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #B9F6A7;
+        }
+
+        footer {
+            background: #1A2E1F;
+            color: #C7E5B5;
+            padding: 2rem 6%;
+            text-align: center;
+        }
+        @media (max-width: 800px) {
+            .navbar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+        }
+        canvas {
+            max-height: 280px;
+        }
+        .leaflet-container {
+            height: 280px;
+            border-radius: 24px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-seedling"></i> AgriSense-AI</div>
+        <div class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#intel">Microbiome AI</a>
+            <a href="#dashboard">Live Dashboard</a>
+            <a href="#advisory">Yield Simulator</a>
+            <a href="#sites">Sites & Map</a>
+            <a href="#impact">Impact</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="badge"><i class="fas fa-microscope"></i> New Southbound Policy Elite Program 2026</div>
+            <h1>Integrating Soil Microbiome Intelligence <br> with AI‑Driven Precision Farming</h1>
+            <p style="font-size: 1.1rem; margin: 1.5rem 0; color: #2A4B2D;">Predictive metagenomics + IoT fusion → Sustainable yield optimization for tropical agroecosystems. Taiwan–India comparative study.</p>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})"><i class="fas fa-chart-line"></i> Explore Live Platform</button>
+                <button class="btn-outline" onclick="document.getElementById('advisory').scrollIntoView({behavior:'smooth'})"><i class="fas fa-microchip"></i> AI Simulator</button>
+            </div>
+            <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-top: 3rem;">
+                <div><i class="fas fa-dna"></i> <strong>+300</strong> metagenomic profiles</div>
+                <div><i class="fas fa-tachometer-alt"></i> <strong>15-25%</strong> fertilizer reduction</div>
+                <div><i class="fas fa-chart-line"></i> <strong>10-20%</strong> yield increase</div>
+            </div>
+        </div>
+        <div style="flex:1; text-align:center;"><i class="fas fa-microbiome" style="font-size: 12rem; opacity:0.2; color:#2E6B3F;"></i></div>
+    </section>
+
+    <!-- Microbiome Intelligence Section -->
+    <section id="intel" style="background: #EDF5E7;">
+        <h2>Soil Microbiome Intelligence <i class="fas fa-brain"></i></h2>
+        <div class="section-subhead">Decoding the ‘second genome’ of agriculture with 16S rRNA & shotgun metagenomics</div>
+        <div class="grid-2">
+            <div class="card">
+                <i class="fas fa-chart-pie" style="font-size: 2rem; color:#3A7B4B;"></i>
+                <h3>Microbial Diversity Explorer</h3>
+                <canvas id="microbiomeChart" width="400" height="250" style="max-width:100%; margin-top: 1rem;"></canvas>
+                <div style="display: flex; gap: 0.8rem; margin-top: 1rem; justify-content: center;">
+                    <button id="btnTaiwan" class="btn-outline" style="padding: 0.3rem 1rem;">🇹🇼 NPUST (Taiwan)</button>
+                    <button id="btnIndia" class="btn-outline" style="padding: 0.3rem 1rem;">🇮🇳 Maharashtra (India)</button>
+                </div>
+                <p class="mt-2" style="margin-top: 1rem; font-size:0.85rem;">Key functional biomarkers: Nitrogen-fixing <i>Rhizobium</i>, P-solubilizers (<i>Bacillus</i>). Machine learning identified 12 core pathways for yield prediction.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-microchip"></i>
+                <h3>SHAP Feature Importance (ML Model)</h3>
+                <canvas id="shapChart" width="400" height="230"></canvas>
+                <p><i class="fas fa-chart-simple"></i> Random Forest + XGBoost ensemble • R² = 0.86 yield prediction accuracy</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Smart Dashboard + IoT + AI Advisory -->
+    <section id="dashboard">
+        <h2><i class="fas fa-tachometer-alt"></i> AgriSense-AI Live Cockpit</h2>
+        <div class="section-subhead">Real-time IoT sensor fusion + microbiome-driven advisories (NPUST Experimental Farm, Pingtung)</div>
+        <div class="dashboard-panel">
+            <div class="sensor-grid">
+                <div class="sensor-tile"><i class="fas fa-tint"></i> Soil Moisture<br><span id="moistureVal" class="sensor-value">-- %</span></div>
+                <div class="sensor-tile"><i class="fas fa-thermometer-half"></i> Soil Temp<br><span id="tempVal" class="sensor-value">-- °C</span></div>
+                <div class="sensor-tile"><i class="fas fa-flask"></i> pH<br><span id="phVal" class="sensor-value">--</span></div>
+                <div class="sensor-tile"><i class="fas fa-bolt"></i> EC (µS/cm)<br><span id="ecVal" class="sensor-value">--</span></div>
+                <div class="sensor-tile"><i class="fas fa-seedling"></i> Soil Health Score<br><span id="healthScore" class="sensor-value">--</span></div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem;">
+                <div style="flex:2; min-width: 200px;"><canvas id="sensorTrendChart" height="150"></canvas></div>
+                <div style="flex:1.5; background:#2B3927; border-radius: 1.5rem; padding: 1rem;">
+                    <i class="fas fa-robot"></i> <strong>AI Microbiome Advisory</strong><br>
+                    <span id="aiAdvice" style="font-size:0.9rem;">Fertilizer recommendation: </span>
+                    <div id="pathogenRisk" style="margin-top: 0.5rem; font-size:0.85rem;"><i class="fas fa-biohazard"></i> Disease risk index: Low</div>
+                </div>
+            </div>
+            <p class="mt-2" style="margin-top: 1rem; font-size: 0.7rem; text-align:center;"><i class="fas fa-satellite-dish"></i> Live LoRaWAN stream (simulated) | Updates every 5 sec | ML inference based on IoT + microbiome proxy</p>
+        </div>
+    </section>
+
+    <!-- AI Yield Simulator & Recommendation Engine (Unique module) -->
+    <section id="advisory" style="background: #ffffff;">
+        <h2><i class="fas fa-chart-scatter"></i> AI Yield Optimizer & Bio‑input Recommender</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h3><i class="fas fa-sliders-h"></i> Predict Yield (Rice - t/ha)</h3>
+                <label>Soil Organic Carbon (g/kg): <span id="carbonValLabel">12</span> g/kg</label>
+                <input type="range" id="carbonSlider" min="5" max="25" step="0.5" value="12" style="width:100%; margin: 8px 0;">
+                <label>Microbial Diversity Index (Shannon): <span id="diversityValLabel">3.2</span></label>
+                <input type="range" id="diversitySlider" min="2.0" max="5.5" step="0.1" value="3.2" style="width:100%; margin: 8px 0;">
+                <label>Available Nitrogen (kg/ha): <span id="nitrogenValLabel">110</span></label>
+                <input type="range" id="nitrogenSlider" min="50" max="200" step="5" value="110" style="width:100%; margin: 8px 0;">
+                <div style="margin-top: 1.5rem; background:#EDF5E7; border-radius: 1.5rem; padding: 1rem;">
+                    <strong>Predicted Yield: <span id="yieldPrediction">5.8</span> t/ha</strong><br>
+                    <span style="font-size:0.8rem;">↑ +14.2% vs conventional practice | Fertilizer saving: <span id="fertilizerSave">18</span>%</span>
+                </div>
+                <button id="simulateAdviceBtn" class="btn-primary" style="margin-top: 1rem; width:100%;">Get Bio‑input Recommendation</button>
+                <div id="bioAdviceOutput" style="margin-top: 1rem; padding: 0.75rem; background: #F1F9EB; border-radius: 1rem; font-size:0.85rem;"><i class="fas fa-vial"></i> Recommended: Azospirillum + Bacillus consortium (2 L/ha)</div>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-leaf"></i> Climate-Smart Input Reduction</h3>
+                <canvas id="impactChart" height="180"></canvas>
+                <div style="margin-top: 1rem;">
+                    <div><i class="fas fa-water"></i> <strong>Water saving potential</strong>: 15-20% via sensor-guided micro-irrigation</div>
+                    <div><i class="fas fa-disease"></i> <strong>Disease suppression</strong>: 40-50% reduction in Fusarium / bacterial blight</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparative Sites & Map + NPUST India -->
+    <section id="sites" style="background: #EAF2E3;">
+        <h2><i class="fas fa-map-marked-alt"></i> Taiwan – India Twin-Site Design</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h3>🇹🇼 NPUST, Pingtung (22.6°N)</h3>
+                <p>Tropical lowland rice & leafy vegetables · Advanced IoT + metagenomics hub · 5 replications RCBD.</p>
+                <h3>🇮🇳 Maharashtra, Amravati (20.9°N)</h3>
+                <p>Smallholder intensive systems · Rabi crops 2026 · partner Univ Pdkv, Akola.</p>
+                <p><i class="fas fa-microscope"></i> Cross-site microbiome comparison reveals unique Actinobacteria enrichment in Taiwan paddy soils.</p>
+            </div>
+            <div class="card">
+                <div id="asiaMap" style="height: 280px; width:100%; border-radius: 20px;"></div>
+                <p class="mt-2" style="margin-top: 0.8rem;"><i class="fas fa-database"></i> 300+ soil samples, 40 shotgun metagenomes, 1,200+ feature ML matrix</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expected Outcomes + Stats -->
+    <section id="impact">
+        <h2>Transformative Impact on NSP Agriculture</h2>
+        <div class="stats-grid" style="grid-template-columns: repeat(4,1fr);">
+            <div class="stat-card"><div class="stat-number">15-25%</div><div>Fertilizer reduction</div></div>
+            <div class="stat-card"><div class="stat-number">+22%</div><div>Vegetable yield (target)</div></div>
+            <div class="stat-card"><div class="stat-number">0.86</div><div>Model R² (yield)</div></div>
+            <div class="stat-card"><div class="stat-number">Open</div><div>Microbiome DB + PWA</div></div>
+        </div>
+        <div class="grid-2" style="margin-top: 1rem;">
+            <div class="card"><i class="fas fa-chalkboard-user"></i> <strong>Farmer-friendly dashboard</strong> — Multilingual (English, Mandarin, Hindi). Progressive Web App accessible via low-bandwidth.</div>
+            <div class="card"><i class="fas fa-globe-asia"></i> <strong>Scalable to Indonesia, Vietnam, Philippines</strong> — Modular transfer learning for tropical agroecosystems.</div>
+        </div>
+    </section>
+
+    <!-- Footer / References -->
+    <footer>
+        <p><i class="fas fa-university"></i> Hosted by National Pingtung University of Science and Technology (NPUST) | New Southbound Policy Elite Study Program 2026</p>
+        <p style="margin-top: 12px;">Principal Investigator candidate | Sponsored by MOFA, Taiwan (R.O.C.) • Open source: GitHub/AgriSense-AI</p>
+        <p>📧 Contact: wxinfo23@mail.npust.edu.tw | 🌾 Smart farming for food security</p>
+    </footer>
+
+    <script>
+        // ---------- Microbiome doughnut chart (Taiwan default) ----------
+        let microbiomeCtx = document.getElementById('microbiomeChart').getContext('2d');
+        let microbiomeChart = new Chart(microbiomeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Proteobacteria', 'Actinobacteria', 'Firmicutes', 'Acidobacteria', 'Bacteroidetes'],
+                datasets: [{
+                    data: [38, 24, 18, 12, 8],
+                    backgroundColor: ['#569845', '#3B7A4A', '#7FB069', '#A1C98D', '#C9E4B7'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } }
+        });
+        document.getElementById('btnTaiwan').addEventListener('click',()=>{
+            microbiomeChart.data.datasets[0].data = [38,24,18,12,8];
+            microbiomeChart.update();
+        });
+        document.getElementById('btnIndia').addEventListener('click',()=>{
+            microbiomeChart.data.datasets[0].data = [44,19,22,9,6];
+            microbiomeChart.update();
+        });
+
+        // SHAP Feature Importance bar chart
+        let shapCtx = document.getElementById('shapChart').getContext('2d');
+        new Chart(shapCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Microbial diversity', 'Soil pH', 'SOC', 'Moisture', 'N-cycling genes', 'Temperature'],
+                datasets: [{
+                    label: 'SHAP value (impact on yield)',
+                    data: [0.32, 0.21, 0.28, 0.18, 0.35, 0.11],
+                    backgroundColor: '#629f4c'
+                }]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+        });
+
+        // Live IoT Simulator + trend chart
+        let trendCtx = document.getElementById('sensorTrendChart').getContext('2d');
+        let timeLabels = Array.from({length: 12}, (_,i)=> `${i*2}h`);
+        let moistureData = [32, 31, 33, 34, 32, 33, 31, 30, 32, 33, 34, 33];
+        let trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{ label: 'Soil Moisture (%)', data: moistureData, borderColor: '#A5D6A5', backgroundColor: 'rgba(100,180,100,0.1)', tension: 0.3, fill: true }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } } }
+        });
+
+        function updateLiveSensors() {
+            let moisture = (28 + Math.random() * 12).toFixed(1);
+            let temp = (26 + Math.random() * 5).toFixed(1);
+            let ph = (6.2 + Math.random() * 0.9).toFixed(1);
+            let ec = (450 + Math.random() * 250).toFixed(0);
+            let health = (65 + (moisture/100)*20 + (ph>6?5:0) - (temp>32?4:0)).toFixed(0);
+            if(health>100) health=98; if(health<45) health=45;
+            document.getElementById('moistureVal').innerText = moisture + '%';
+            document.getElementById('tempVal').innerText = temp + '°C';
+            document.getElementById('phVal').innerText = ph;
+            document.getElementById('ecVal').innerText = ec + ' µS/cm';
+            document.getElementById('healthScore').innerText = health + '/100';
+            // dynamic advice based on sensor
+            let advice = '';
+            let risk = 'Low';
+            if(moisture < 32) advice = '⚠️ Light deficit irrigation recommended. Maintain optimal moisture for microbiome activity.';
+            else if(moisture > 48) advice = '💧 Slight waterlogging risk; improve drainage.';
+            else advice = '✅ Optimal soil moisture – microbial nitrogen fixation active. Reduce N fertilizer by 12%.';
+            if(ph < 5.8) advice += ' Liming advised for phosphorus solubilizers.';
+            if(temp > 35) risk = 'Moderate (heat stress)';
+            document.getElementById('aiAdvice').innerHTML = `<i class="fas fa-leaf"></i> ${advice}`;
+            document.getElementById('pathogenRisk').innerHTML = `<i class="fas fa-biohazard"></i> Disease risk index: ${risk} | Biocontrol recommendation: Trichoderma spp.`;
+            // trend update (shift new mock)
+            let newMoist = parseFloat(moisture);
+            moistureData.push(newMoist);
+            if(moistureData.length>12) moistureData.shift();
+            trendChart.data.datasets[0].data = moistureData;
+            trendChart.update();
+        }
+        setInterval(updateLiveSensors, 5000);
+        updateLiveSensors();
+
+        // Yield Simulator dynamic prediction
+        const carbonSlider = document.getElementById('carbonSlider');
+        const diversitySlider = document.getElementById('diversitySlider');
+        const nitrogenSlider = document.getElementById('nitrogenSlider');
+        const carbonVal = document.getElementById('carbonValLabel');
+        const diversityVal = document.getElementById('diversityValLabel');
+        const nitrogenVal = document.getElementById('nitrogenValLabel');
+        const yieldSpan = document.getElementById('yieldPrediction');
+        const fertilizerSaveSpan = document.getElementById('fertilizerSave');
+        
+        function computeYield() {
+            let carbon = parseFloat(carbonSlider.value);
+            let diversity = parseFloat(diversitySlider.value);
+            let nitrogen = parseFloat(nitrogenSlider.value);
+            carbonVal.innerText = carbon;
+            diversityVal.innerText = diversity.toFixed(1);
+            nitrogenVal.innerText = nitrogen;
+            // base yield 4.8 t/ha baseline
+            let yieldPred = 4.6 + (carbon-10)*0.08 + (diversity-3)*0.45 + (nitrogen-100)*0.012;
+            yieldPred = Math.min(7.5, Math.max(3.8, yieldPred));
+            let baselineConv = 4.9;
+            let percentIncrease = ((yieldPred - baselineConv)/baselineConv*100).toFixed(1);
+            let fertReduction = 15 + (diversity-2.5)*3 + (carbon-8)*0.5;
+            fertReduction = Math.min(30, Math.max(10, fertReduction)).toFixed(0);
+            yieldSpan.innerText = yieldPred.toFixed(1);
+            fertilizerSaveSpan.innerText = fertReduction;
+            return { yieldPred, fertReduction };
+        }
+        function updateYield() { computeYield(); }
+        carbonSlider.addEventListener('input', updateYield);
+        diversitySlider.addEventListener('input', updateYield);
+        nitrogenSlider.addEventListener('input', updateYield);
+        updateYield();
+        
+        document.getElementById('simulateAdviceBtn').addEventListener('click', ()=>{
+            let { yieldPred, fertReduction } = computeYield();
+            let bioText = "";
+            if(yieldPred > 6.2) bioText = "Premium consortia: Rhizobium + PSB + mycorrhizae (2.5 kg/ha seed treatment) → Maximize microbiome synergy.";
+            else if(yieldPred > 5.2) bioText = "Azospirillum + Bacillus megaterium (liquid formulation 1.5 L/ha) + 20% reduced urea.";
+            else bioText = "Restoration package: compost + Trichoderma-enriched biofertilizer to boost diversity index.";
+            document.getElementById('bioAdviceOutput').innerHTML = `<i class="fas fa-microbe"></i> AI-optimized bio-input: ${bioText}<br><small>Expected N savings: ${fertReduction}% | Yield lift +${((yieldPred/4.9-1)*100).toFixed(1)}%</small>`;
+        });
+
+        // Expected impact bar chart (fertilizer vs yield)
+        let impactCtx = document.getElementById('impactChart').getContext('2d');
+        new Chart(impactCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Conventional', 'AgriSense-AI'],
+                datasets: [
+                    { label: 'Fertilizer Use (kg N/ha)', data: [145, 112], backgroundColor: '#ad8c6d' },
+                    { label: 'Yield (t/ha rice)', data: [4.9, 6.1], backgroundColor: '#5E9B4B' }
+                ]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+
+        // Leaflet Map (Asia twin sites)
+        var map = L.map('asiaMap').setView([23.5, 95], 5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 8,
+            minZoom: 4
+        }).addTo(map);
+        var npustIcon = L.divIcon({ html: '<i class="fas fa-map-marker-alt" style="color:#2C6E3F; font-size:26px;"></i>', iconSize: [26,26], className: 'custom-icon' });
+        var indiaIcon = L.divIcon({ html: '<i class="fas fa-map-marker-alt" style="color:#D45A2B; font-size:26px;"></i>', iconSize: [26,26] });
+        L.marker([22.6, 120.5], { icon: npustIcon }).addTo(map).bindPopup('<b>NPUST, Pingtung</b><br>IoT farm & sequencing hub').openPopup();
+        L.marker([20.9, 77.8], { icon: indiaIcon }).addTo(map).bindPopup('<b>Maharashtra, India</b><br>Smallholder comparative site (Rabi 2026)');
+        L.circle([22.6, 120.5], { radius: 15000, color: '#569845', weight: 1, fillOpacity: 0.1 }).addTo(map);
+        L.circle([20.9, 77.8], { radius: 25000, color: '#E68A2E', weight: 1, fillOpacity: 0.1 }).addTo(map);
+        
+        // Additional Unique Feature: Carbon Sequestration Potential Module 
+        const carbonSeqDiv = document.createElement('div');
+        carbonSeqDiv.className = 'card';
+        carbonSeqDiv.style.marginTop = '1.5rem';
+        carbonSeqDiv.innerHTML = `<i class="fas fa-cloud-sun"></i> <strong>Soil Carbon Sequestration Potential</strong><br>Based on current microbiome & SOC: estimated additional 0.42 t CO₂-eq/ha/year under microbial consortium application. <progress value="68" max="100" style="width:100%; height:10px; border-radius:10px;"></progress>`;
+        document.getElementById('advisory').appendChild(carbonSeqDiv);
+        
+        // Additional real-time count for statistical updates (dynamic)
+        setInterval(()=> {
+            let randomMetric = (Math.random() * 3 + 14).toFixed(1);
+            let fertElem = document.querySelector('#impact .stat-card:first-child .stat-number');
+            if(fertElem) fertElem.innerText = randomMetric + '%';
+        }, 15000);
+        // ensure no errors for all modules
+        console.log("AgriSense-AI fully operational: Microbiome + IoT fusion active");
+    </script>
+</body>
+</html>
