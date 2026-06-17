@@ -64,5 +64,5 @@ The interactive website is already built and can be run locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/agrisense-ai.git
+git clone https://github.com/aishwraya709/AgriSense-AI.git
 cd agrisense-ai
